@@ -8,6 +8,7 @@ require (
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.18.1
 	github.com/openkruise/kruise-api v1.3.0
+	github.com/openkruise/rollouts/api v0.0.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.0
 	github.com/yuin/gopher-lua v0.0.0-20220504180219-658193537a64
@@ -89,3 +90,5 @@ require (
 	sigs.k8s.io/json v0.0.0-20211208200746-9f7c6b3444d2 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.1 // indirect
 )
+
+replace github.com/openkruise/rollouts/api => ./api
