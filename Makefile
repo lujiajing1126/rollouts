@@ -135,7 +135,7 @@ HELM_VERSION ?= v3.14.0
 CODEGENERATOR_VERSION ?= v0.24.1
 
 CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen-$(CONTROLLER_TOOLS_VERSION)
-KUSTOMIZE = $(LOCALBIN)/bin/kustomize
+KUSTOMIZE = $(LOCALBIN)/bin/kustomize-$(KUSTOMIZE_VERSION)
 GINKGO = $(LOCALBIN)/ginkgo-$(GINKGO_VERSION)
 HELM = $(LOCALBIN)/helm-$(HELM_VERSION)
 CLIENT_GEN = $(LOCALBIN)/client-gen-$(CODEGENERATOR_VERSION)
@@ -150,7 +150,7 @@ $(CONTROLLER_GEN): $(LOCALBIN)
 .PHONY: kustomize
 kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary.
 $(KUSTOMIZE): $(LOCALBIN)
-	$(call go-install-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v5,$(KUSTOMIZE_VERSION))
+	$(call go-install-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v4,$(KUSTOMIZE_VERSION))
 
 .PHONY: ginkgo
 ginkgo: $(GINKGO) ## Download ginkgo locally if necessary.
