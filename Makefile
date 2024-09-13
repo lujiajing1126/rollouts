@@ -133,20 +133,20 @@ controller-gen: ## Download controller-gen locally if necessary.
 ifeq ("$(shell $(CONTROLLER_GEN) --version)", "Version: v0.7.0")
 else
 	rm -rf $(CONTROLLER_GEN)
-	$(call go-install-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.7.0)
+	$(call go-install-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen,v0.7.0)
 endif
 
 KUSTOMIZE = $(shell pwd)/bin/kustomize
 kustomize: ## Download kustomize locally if necessary.
-	$(call go-install-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v4@v4.5.5)
+	$(call go-install-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v4,v4.5.5)
 
 GINKGO = $(shell pwd)/bin/ginkgo
 ginkgo: ## Download ginkgo locally if necessary.
-	$(call go-install-tool,$(GINKGO),github.com/onsi/ginkgo/ginkgo@v1.16.4)
+	$(call go-install-tool,$(GINKGO),github.com/onsi/ginkgo/ginkgo,v1.16.4)
 
 HELM = $(shell pwd)/bin/helm
 helm: ## Download helm locally if necessary.
-	$(call go-install-tool,$(HELM),helm.sh/helm/v3/cmd/helm@v3.14.0)
+	$(call go-install-tool,$(HELM),helm.sh/helm/v3/cmd/helm,v3.14.0)
 
 CODEGENERATOR_VERSION ?= v0.24.1
 CLIENT_GEN = $(LOCALBIN)/client-gen-$(CODEGENERATOR_VERSION)
