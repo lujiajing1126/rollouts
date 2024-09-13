@@ -128,30 +128,39 @@ LOCALBIN ?= $(shell pwd)/bin
 $(LOCALBIN):
 	mkdir -p $(LOCALBIN)
 
-CONTROLLER_GEN = $(LOCALBIN)/controller-gen
-controller-gen: ## Download controller-gen locally if necessary.
-ifeq ("$(shell $(CONTROLLER_GEN) --version)", "Version: v0.7.0")
-else
-	rm -rf $(CONTROLLER_GEN)
-	$(call go-install-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen,v0.7.0)
-endif
-
-KUSTOMIZE = $(shell pwd)/bin/kustomize
-kustomize: ## Download kustomize locally if necessary.
-	$(call go-install-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v4,v4.5.5)
-
-GINKGO = $(shell pwd)/bin/ginkgo
-ginkgo: ## Download ginkgo locally if necessary.
-	$(call go-install-tool,$(GINKGO),github.com/onsi/ginkgo/ginkgo,v1.16.4)
-
-HELM = $(shell pwd)/bin/helm
-helm: ## Download helm locally if necessary.
-	$(call go-install-tool,$(HELM),helm.sh/helm/v3/cmd/helm,v3.14.0)
-
+CONTROLLER_TOOLS_VERSION ?= v0.7.0
+KUSTOMIZE_VERSION ?= v4.5.5
+GINKGO_VERSION ?= v1.16.4
+HELM_VERSION ?= v3.14.0
 CODEGENERATOR_VERSION ?= v0.24.1
+
+CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen-$(CONTROLLER_TOOLS_VERSION)
+KUSTOMIZE = $(LOCALBIN)/bin/kustomize
+GINKGO = $(LOCALBIN)/ginkgo-$(GINKGO_VERSION)
+HELM = $(LOCALBIN)/helm-$(HELM_VERSION)
 CLIENT_GEN = $(LOCALBIN)/client-gen-$(CODEGENERATOR_VERSION)
 LISTER_GEN = $(LOCALBIN)/lister-gen-$(CODEGENERATOR_VERSION)
 INFORMER_GEN = $(LOCALBIN)/informer-gen-$(CODEGENERATOR_VERSION)
+
+.PHONY: controller-gen
+controller-gen: $(CONTROLLER_GEN) ## Download controller-gen locally if necessary.
+$(CONTROLLER_GEN): $(LOCALBIN)
+	$(call go-install-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen,$(CONTROLLER_TOOLS_VERSION))
+
+.PHONY: kustomize
+kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary.
+$(KUSTOMIZE): $(LOCALBIN)
+	$(call go-install-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v5,$(KUSTOMIZE_VERSION))
+
+.PHONY: ginkgo
+ginkgo: $(GINKGO) ## Download ginkgo locally if necessary.
+$(GINKGO): $(LOCALBIN)
+	$(call go-install-tool,$(GINKGO),github.com/onsi/ginkgo/ginkgo,$(GINKGO_VERSION))
+
+.PHONY: helm
+helm: $(HELM) ## Download helm locally if necessary.
+$(HELM): $(LOCALBIN)
+	$(call go-install-tool,$(HELM),helm.sh/helm/v3/cmd/helm,$(HELM_VERSION))
 
 .PHONY: client-gen
 client-gen: $(CLIENT_GEN)
