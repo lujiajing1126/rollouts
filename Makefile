@@ -44,6 +44,38 @@ manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and Cust
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
+.PHONY: api-gen
+api-gen: client-gen lister-gen informer-gen
+	rm -rf api/client
+	mkdir -p api/rollouts/v1beta1
+	cp api/v1beta1/* api/rollouts/v1beta1/
+
+	@echo ">> generating with client-gen"
+	$(CLIENT_GEN) \
+		--clientset-name versioned \
+		--input-base "github.com/openkruise/rollouts/api" \
+		--input "rollouts/v1beta1" \
+		--output-package github.com/openkruise/rollouts/api/client \
+		--output-base "" \
+		--go-header-file hack/boilerplate.go.txt
+	@echo ">> generating with lister-gen"
+	$(LISTER_GEN) \
+        --input-dirs "github.com/openkruise/rollouts/api/rollouts/v1beta1" \
+		--output-base "" \
+		--output-package github.com/openkruise/rollouts/api/client/listers \
+		--go-header-file hack/boilerplate.go.txt
+	@echo ">> generating with informer-gen"
+	$(INFORMER_GEN) \
+		--versioned-clientset-package github.com/openkruise/rollouts/api/client/versioned \
+		--listers-package github.com/openkruise/rollouts/api/client/listers \
+		--input-dirs "github.com/openkruise/rollouts/api/rollouts/v1beta1" \
+		--output-base "" \
+		--output-package github.com/openkruise/rollouts/api/client/informers \
+		--go-header-file hack/boilerplate.go.txt
+
+	mv github.com/openkruise/rollouts/api/client api/
+	rm -rf github.com/
+
 fmt: ## Run go fmt against code.
 	go fmt ./...
 
@@ -89,8 +121,14 @@ deploy: manifests kustomize manifests ## Deploy controller to the K8s cluster sp
 undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config.
 	$(KUSTOMIZE) build config/default | kubectl delete -f -
 
+##@ Dependencies
 
-CONTROLLER_GEN = $(shell pwd)/bin/controller-gen
+## Location to install dependencies to
+LOCALBIN ?= $(shell pwd)/bin
+$(LOCALBIN):
+	mkdir -p $(LOCALBIN)
+
+CONTROLLER_GEN = $(LOCALBIN)/controller-gen
 controller-gen: ## Download controller-gen locally if necessary.
 ifeq ("$(shell $(CONTROLLER_GEN) --version)", "Version: v0.7.0")
 else
@@ -100,26 +138,48 @@ endif
 
 KUSTOMIZE = $(shell pwd)/bin/kustomize
 kustomize: ## Download kustomize locally if necessary.
-	$(call go-get-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v4@v4.5.5)
+	$(call go-install-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v4@v4.5.5)
 
 GINKGO = $(shell pwd)/bin/ginkgo
 ginkgo: ## Download ginkgo locally if necessary.
-	$(call go-get-tool,$(GINKGO),github.com/onsi/ginkgo/ginkgo@v1.16.4)
+	$(call go-install-tool,$(GINKGO),github.com/onsi/ginkgo/ginkgo@v1.16.4)
 
 HELM = $(shell pwd)/bin/helm
 helm: ## Download helm locally if necessary.
-	$(call go-get-tool,$(HELM),helm.sh/helm/v3/cmd/helm@v3.14.0)
+	$(call go-install-tool,$(HELM),helm.sh/helm/v3/cmd/helm@v3.14.0)
+
+CODEGENERATOR_VERSION ?= v0.24.1
+CLIENT_GEN = $(LOCALBIN)/client-gen-$(CODEGENERATOR_VERSION)
+LISTER_GEN = $(LOCALBIN)/lister-gen-$(CODEGENERATOR_VERSION)
+INFORMER_GEN = $(LOCALBIN)/informer-gen-$(CODEGENERATOR_VERSION)
+
+.PHONY: client-gen
+client-gen: $(CLIENT_GEN)
+$(CLIENT_GEN): $(LOCALBIN)
+	$(call go-install-tool,$(CLIENT_GEN),k8s.io/code-generator/cmd/client-gen,$(CODEGENERATOR_VERSION))
+
+.PHONY: lister-gen
+lister-gen: $(LISTER_GEN)
+$(LISTER_GEN): $(LOCALBIN)
+	$(call go-install-tool,$(LISTER_GEN),k8s.io/code-generator/cmd/lister-gen,$(CODEGENERATOR_VERSION))
+
+.PHONY: informer-gen
+informer-gen: $(INFORMER_GEN)
+$(INFORMER_GEN): $(LOCALBIN)
+	$(call go-install-tool,$(INFORMER_GEN),k8s.io/code-generator/cmd/informer-gen,$(CODEGENERATOR_VERSION))
 
 # go-get-tool will 'go get' any package $2 and install it to $1.
 PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
-define go-get-tool
+# go-install-tool will 'go install' any package with custom target and name of binary, if it doesn't exist
+# $1 - target path with name of binary (ideally with version)
+# $2 - package url which can be installed
+# $3 - specific version of package
+define go-install-tool
 @[ -f $(1) ] || { \
-set -e ;\
-TMP_DIR=$$(mktemp -d) ;\
-cd $$TMP_DIR ;\
-go mod init tmp ;\
-echo "Downloading $(2)" ;\
-GOBIN=$(PROJECT_DIR)/bin go install $(2) ;\
-rm -rf $$TMP_DIR ;\
+set -e; \
+package=$(2)@$(3) ;\
+echo "Downloading $${package}" ;\
+GOBIN=$(LOCALBIN) go install $${package} ;\
+mv "$$(echo "$(1)" | sed "s/-$(3)$$//")" $(1) ;\
 }
 endef
