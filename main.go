@@ -18,13 +18,15 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
 
-	webhookutil "github.com/openkruise/rollouts/pkg/webhook/util"
-
+	"github.com/go-logr/logr"
+	"github.com/go-logr/zapr"
 	kruisev1aplphal1 "github.com/openkruise/kruise-api/apps/v1alpha1"
 	kruisev1beta1 "github.com/openkruise/kruise-api/apps/v1beta1"
 	"github.com/spf13/pflag"
+	"go.uber.org/zap"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -47,6 +49,7 @@ import (
 	utilclient "github.com/openkruise/rollouts/pkg/util/client"
 	utilfeature "github.com/openkruise/rollouts/pkg/util/feature"
 	"github.com/openkruise/rollouts/pkg/webhook"
+	webhookutil "github.com/openkruise/rollouts/pkg/webhook/util"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -73,16 +76,33 @@ func main() {
 	var metricsAddr string
 	var enableLeaderElection bool
 	var probeAddr string
+	var logrImpl string
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
+	flag.StringVar(&logrImpl, "logr-impl", "zapr", "The logr implementation to be used for logging. Options are klogr and zapr.")
 	utilfeature.DefaultMutableFeatureGate.AddFlag(pflag.CommandLine)
 	klog.InitFlags(nil)
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 	pflag.Parse()
-	ctrl.SetLogger(klogr.New())
+	var logger logr.Logger
+	switch logrImpl {
+	case "klogr":
+		logger = klogr.New()
+	case "zapr":
+		zapLog, err := zap.NewProduction()
+		if err != nil {
+			panic(fmt.Sprintf("who watches the watchmen (%v)?", err))
+		}
+		logger = zapr.NewLogger(zapLog)
+		// delegate klog to zap
+		klog.SetLogger(logger)
+	default:
+		panic(fmt.Sprintf("unknown logr implementation %s", logrImpl))
+	}
+	ctrl.SetLogger(logger)
 
 	cfg := ctrl.GetConfigOrDie()
 	cfg.UserAgent = "kruise-rollout"
