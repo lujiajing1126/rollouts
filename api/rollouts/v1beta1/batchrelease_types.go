@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+// +kubebuilder:skip
 package v1beta1
 
 import (
@@ -25,11 +26,6 @@ import (
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:storageversion
-// +kubebuilder:printcolumn:name="KIND",type=string,JSONPath=`.spec.targetReference.workloadRef.kind`
-// +kubebuilder:printcolumn:name="PHASE",type=string,JSONPath=`.status.phase`
-// +kubebuilder:printcolumn:name="BATCH",type=integer,JSONPath=`.status.canaryStatus.currentBatch`
-// +kubebuilder:printcolumn:name="BATCH-STATE",type=string,JSONPath=`.status.canaryStatus.batchState`
-// +kubebuilder:printcolumn:name="AGE",type=date,JSONPath=".metadata.creationTimestamp"
 
 type BatchRelease struct {
 	metav1.TypeMeta   `json:",inline"`
