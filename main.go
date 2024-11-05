@@ -19,9 +19,9 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/go-logr/logr"
 	"os"
 
+	"github.com/go-logr/logr"
 	"github.com/go-logr/zapr"
 	kruisev1aplphal1 "github.com/openkruise/kruise-api/apps/v1alpha1"
 	kruisev1beta1 "github.com/openkruise/kruise-api/apps/v1beta1"
