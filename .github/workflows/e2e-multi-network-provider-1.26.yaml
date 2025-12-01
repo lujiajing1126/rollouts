@@ -1,4 +1,4 @@
-name: E2E-Custom
+name: E2E-Multiple-NetworkProvider-1.26
 
 on:
   push:
@@ -75,7 +75,7 @@ jobs:
           kubectl apply -f ./test/e2e/test_data/customNetworkProvider/lua_script_configmap.yaml
           make ginkgo
           set +e
-          ./bin/ginkgo -timeout 60m -v --focus='Canary rollout with custom network provider' test/e2e
+          ./bin/ginkgo -timeout 60m -v --focus='Canary rollout with multiple network providers' test/e2e
           retVal=$?
           if [ "${retVal}" -ne 0 ];then
               echo "test fail, dump kruise-rollout logs"
