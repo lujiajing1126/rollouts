@@ -1,4 +1,4 @@
-name: E2E-Multiple-NetworkProvider
+name: E2E-Multiple-NetworkProvider-1.26
 
 on:
   push:
