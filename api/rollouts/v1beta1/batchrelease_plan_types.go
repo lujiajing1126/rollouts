@@ -71,7 +71,10 @@ type FinalizingPolicyType string
 const (
 	// WaitResumeFinalizingPolicyType will wait workload to be resumed, which means
 	// controller will be hold at Finalizing phase until all pods of workload is upgraded.
-	// WaitResumeFinalizingPolicyType only works in canary-style BatchRelease controller.
+	// WaitResumeFinalizingPolicyType currently serves two purposes:
+	// 1. In canary deployments, it determines whether to wait for the stable deployment to complete.
+	// 2. It distinguishes between a normal deployment completion and a rollout cancellation during deployment.
+	// Only a normal deployment completion will result in a WaitResume state.
 	WaitResumeFinalizingPolicyType FinalizingPolicyType = "WaitResume"
 	// ImmediateFinalizingPolicyType will not to wait workload to be resumed.
 	ImmediateFinalizingPolicyType FinalizingPolicyType = "Immediate"
@@ -117,6 +120,8 @@ type BatchReleaseStatus struct {
 	// Phase is the release plan phase, which indicates the current state of release
 	// plan state machine in BatchRelease controller.
 	Phase RolloutPhase `json:"phase,omitempty"`
+	// Message provides details on why the rollout is in its current phase
+	Message string `json:"message,omitempty"`
 }
 
 type BatchReleaseCanaryStatus struct {
@@ -152,6 +157,6 @@ const (
 	RolloutPhasePreparing RolloutPhase = "Preparing"
 	// RolloutPhaseFinalizing indicates a rollout is finalizing
 	RolloutPhaseFinalizing RolloutPhase = "Finalizing"
-	// RolloutPhaseCompleted indicates a rollout is completed/cancelled/terminated
+	// RolloutPhaseCompleted indicates a rollout is completed/canceled/terminated
 	RolloutPhaseCompleted RolloutPhase = "Completed"
 )

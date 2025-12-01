@@ -150,7 +150,7 @@ CONTROLLER_GEN_VERSION ?= v0.14.0
 KUSTOMIZE_VERSION ?= v4.5.5
 GINKGO_VERSION ?= v1.16.4
 HELM_VERSION ?= v3.14.0
-CODEGENERATOR_VERSION ?= v0.26.3
+CODEGENERATOR_VERSION ?= v0.28.9
 
 CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen-$(CONTROLLER_GEN_VERSION)
 KUSTOMIZE = $(LOCALBIN)/kustomize-$(KUSTOMIZE_VERSION)
@@ -166,7 +166,7 @@ $(CONTROLLER_GEN): $(LOCALBIN)
 ifeq ("$(shell $(CONTROLLER_GEN) --version)", "Version: ${CONTROLLER_GEN_VERSION}")
 else
 	rm -rf $(CONTROLLER_GEN)
-	$(call go-install-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen,$(CONTROLLER_TOOLS_VERSION))
+	$(call go-install-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen,$(CONTROLLER_GEN_VERSION))
 endif
 
 .PHONY: kustomize
