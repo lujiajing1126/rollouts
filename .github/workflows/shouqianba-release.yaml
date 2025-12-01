@@ -5,7 +5,7 @@ on:
       - created
 
 env:
-  GOLANGCI_VERSION: 'v1.52'
+  GOLANGCI_VERSION: 'v2.1'
 
 jobs:
   publish-image:
